@@ -1,0 +1,16 @@
+[server]
+# Cloud-friendly defaults; let platform manage address/port
+enableCORS = true
+enableXsrfProtection = true
+headless = true
+runOnSave = false
+maxUploadSize = 200
+maxMessageSize = 200
+enableWebsocketCompression = false
+
+[client]
+showSidebarNavigation = true
+showErrorDetails = true
+
+[logger]
+level = "info"

@@ -1,0 +1,51 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "site_id": "S1",
+        "name": "Schkeuditz Logistics Hub",
+        "grid_kva": 6300,
+        "land_area_m2": 8500,
+        "highway_access_score": 0.5,
+        "tent_fit": 0,
+        "demand_proxy": 0.5,
+        "address": "",
+        "region": "",
+        "corridor_note": "",
+        "notes": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.221,
+          51.396
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "site_id": "S2",
+        "name": "A9 Service Area",
+        "grid_kva": 4000,
+        "land_area_m2": 6000,
+        "highway_access_score": 0.5,
+        "tent_fit": 0,
+        "demand_proxy": 0.5,
+        "address": "",
+        "region": "",
+        "corridor_note": "",
+        "notes": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.12,
+          51.45
+        ]
+      }
+    }
+  ]
+}
