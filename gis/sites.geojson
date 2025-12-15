@@ -8,19 +8,19 @@
         "name": "Schkeuditz Logistics Hub",
         "grid_kva": 6300,
         "land_area_m2": 8500,
-        "highway_access_score": 0.5,
-        "tent_fit": 0,
-        "demand_proxy": 0.5,
-        "address": "",
-        "region": "",
-        "corridor_note": "",
-        "notes": ""
+        "highway_access_score": 0.9,
+        "tent_fit": 1,
+        "demand_proxy": 0.75,
+        "address": "An d. Autobahn 1, 04435 Schkeuditz, Germany",
+        "region": "Sachsen",
+        "corridor_note": "TEN-T corridor – A9 exit 16",
+        "notes": "CEF-AFIF eligible site"
       },
       "geometry": {
         "type": "Point",
         "coordinates": [
-          12.221,
-          51.396
+          12.181344225957387,
+          51.401844746302224
         ]
       }
     },
@@ -31,13 +31,13 @@
         "name": "A9 Service Area",
         "grid_kva": 4000,
         "land_area_m2": 6000,
-        "highway_access_score": 0.5,
+        "highway_access_score": 0.7,
         "tent_fit": 0,
-        "demand_proxy": 0.5,
-        "address": "",
-        "region": "",
-        "corridor_note": "",
-        "notes": ""
+        "demand_proxy": 0.6,
+        "address": "A9 Service Area, Germany",
+        "region": "Sachsen",
+        "corridor_note": "TEN-T A9 corridor",
+        "notes": "Secondary candidate site"
       },
       "geometry": {
         "type": "Point",
