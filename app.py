@@ -4081,6 +4081,7 @@ with tab_serv:
     )
     
     # Update layout with dual y-axes
+    max_wait = max(wait_times) if wait_times else 70
     fig_optimization.update_layout(
         title=dict(
             text="Service Level vs. Bay Count Scaling",
@@ -4100,7 +4101,7 @@ with tab_serv:
             titlefont=dict(color="#dc2626"),
             tickfont=dict(color="#dc2626"),
             gridcolor='#fee2e2',
-            range=[0, max(wait_times) * 1.1]
+            range=[0, max_wait * 1.1]
         ),
         yaxis2=dict(
             title="Service Level (%)",
