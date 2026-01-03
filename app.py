@@ -4098,14 +4098,14 @@ with tab_serv:
         ),
         yaxis=dict(
             title="Average Wait Time (minutes)",
-            titlefont=dict(color="#dc2626"),
+            title_font=dict(color="#dc2626"),
             tickfont=dict(color="#dc2626"),
             gridcolor='#fee2e2',
             range=[0, max_wait * 1.1]
         ),
         yaxis2=dict(
             title="Service Level (%)",
-            titlefont=dict(color="#10b981"),
+            title_font=dict(color="#10b981"),
             tickfont=dict(color="#10b981"),
             overlaying='y',
             side='right',
