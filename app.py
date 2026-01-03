@@ -241,6 +241,13 @@ with st.sidebar:
         )
         power_factor = st.slider("Power Factor (PF)", 0.85, 1.00, 0.95, step=0.01)
         
+        # Grid Diversity Module - Universal Decision Support
+        diversity_factor = st.slider(
+            "Simultaneity/Diversity Factor (g)",
+            0.60, 1.00, 0.85, step=0.01,
+            help="Accounts for non-simultaneous peak demand across all chargers. Lower values (0.60-0.70) assume staggered usage, 1.00 assumes all chargers peak simultaneously."
+        )
+        
         st.caption("Environmental Conditions")
         ambient_temp = st.slider("Ambient Temperature (°C)", -10, 45, 25, step=5,
                                 help="Chargers derate at high temps: 35°C = -10%, 40°C = -20%")
@@ -252,15 +259,16 @@ with st.sidebar:
         hpc_power_kw = st.slider("HPC Charging Power (kW)", 100, 1000, 400, step=50)
         ac_power_kw = st.slider("AC Charging Power (kW)", 11, 150, 43, step=11)
        
-        st.caption("Utilization (Traffic)")
+        # === MACRO-TO-MICRO TRAFFIC MODULE (Universal Decision Support) ===
+        st.caption("Utilization (Traffic) - Dynamic Calculator")
         # Use scientific demand calculation as default
         default_hpc = int(scientific_hpc_traffic) if scientific_hpc_traffic > 0 else 75
         default_ac = st.session_state.get("default_ac_traffic", 10)
         
-        st.info(f"📊 **Scientific Demand:** {scientific_hpc_traffic:.1f} trucks/day (from BASt + Capture Rate)")
+        st.info(f"📊 **Calculated Site Demand:** {scientific_hpc_traffic:.1f} trucks/day\n\n(TDT: {total_daily_traffic:,} × Electrification: {electrification_rate:.0f}% × Capture: {site_conversion_rate:.1f}%)")
         
         hpc_traffic = st.slider("HPC Traffic (Trucks/Day)", 10, 200, default_hpc,
-                               help=f"Auto-calculated from corridor traffic. Override if needed.")
+                               help=f"Auto-calculated from BASt corridor traffic + capture rates. Override for sensitivity analysis.")
         ac_traffic = st.slider("AC Traffic (Trucks/Day)", 0, 50, default_ac)
         
         st.caption("🚚 Queue Behavior")
@@ -439,7 +447,8 @@ def run_simulation(hpc_power_kw, ac_power_kw):
 res, temp_derate = run_simulation(hpc_power_kw, ac_power_kw)
 # --- 4. CALCULATIONS ---
 peak_load_kw = res["Final_Grid_kW"].max()
-peak_load_kva = peak_load_kw / power_factor
+# Apply Grid Diversity Factor (Universal Module)
+peak_load_kva = (peak_load_kw * diversity_factor) / power_factor
 is_overload = peak_load_kva > transformer_limit_kva
 # Energy (Served Only)
 energy_hpc = res["HPC_Served_kW"].sum() / 4
@@ -4772,7 +4781,61 @@ with tab_layout:
     </div>
     """, unsafe_allow_html=True)
     
+    # === ONE-WAY SPATIAL VALIDATOR (Universal Decision Support) ===
+    st.markdown("### ⚠️ Spatial Feasibility Check")
+    
+    # Calculate required safe area for one-way forward-flow logistics
+    bay_width_m = 4.5  # Standard bay width per DIN EN 61851
+    bay_length_m = 25  # Standard bay length
+    maneuvering_depth_m = 30  # One-way circulation depth
+    
+    required_safe_area = (n_hpc * bay_width_m) * (bay_length_m + maneuvering_depth_m)
+    available_area = st.session_state.get('available_area', 3000)
+    
+    spatial_compliance = required_safe_area <= available_area
+    
+    if not spatial_compliance:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); 
+                    padding: 20px; border-radius: 10px; border-left: 5px solid #dc2626; 
+                    margin-bottom: 25px; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);">
+            <h4 style="color: #991b1b; margin: 0 0 12px 0; font-size: 16px; font-weight: 700;">⚠️ Spatial Constraint Violation</h4>
+            <p style="margin: 0 0 10px 0; color: #7f1d1d; font-size: 14px; line-height: 1.6;">
+            <strong>Insufficient area for forward-flow one-way logistics.</strong>
+            </p>
+            <div style="background: rgba(255,255,255,0.5); padding: 12px; border-radius: 6px; margin-top: 12px;">
+                <p style="margin: 0; color: #7f1d1d; font-size: 13px;">
+                📐 <strong>Required:</strong> {required_safe_area:,.0f} m² ({n_hpc} bays × 4.5m × 55m)<br>
+                📏 <strong>Available:</strong> {available_area:,.0f} m²<br>
+                ❌ <strong>Shortfall:</strong> {required_safe_area - available_area:,.0f} m² ({((required_safe_area/available_area - 1)*100):.1f}% over capacity)
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        spatial_margin = available_area - required_safe_area
+        utilization_pct = (required_safe_area / available_area) * 100
+        
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); 
+                    padding: 20px; border-radius: 10px; border-left: 5px solid #10b981; 
+                    margin-bottom: 25px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);">
+            <h4 style="color: #065f46; margin: 0 0 12px 0; font-size: 16px; font-weight: 700;">✅ Spatial Compliance Verified</h4>
+            <p style="margin: 0 0 10px 0; color: #047857; font-size: 14px; line-height: 1.6;">
+            <strong>Site has sufficient area for forward-flow one-way logistics.</strong>
+            </p>
+            <div style="background: rgba(255,255,255,0.5); padding: 12px; border-radius: 6px; margin-top: 12px;">
+                <p style="margin: 0; color: #047857; font-size: 13px;">
+                📐 <strong>Required:</strong> {required_safe_area:,.0f} m² ({n_hpc} bays × 4.5m × 55m)<br>
+                📏 <strong>Available:</strong> {available_area:,.0f} m²<br>
+                ✅ <strong>Margin:</strong> {spatial_margin:,.0f} m² ({utilization_pct:.1f}% site utilization)
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
     # GIS Integration Section with better styling
+    st.markdown("---")
     st.markdown("### Site Context Integration")
     
     if 'active_site_name' in st.session_state and st.session_state.get('active_site_name'):
