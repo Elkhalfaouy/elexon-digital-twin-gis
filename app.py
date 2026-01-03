@@ -3933,7 +3933,7 @@ with tab_serv:
     <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); 
                 padding: 18px; border-radius: 10px; border-left: 4px solid #0284c7; margin-bottom: 20px;">
         <p style="color: #0c4a6e; margin: 0; font-size: 14px; line-height: 1.6;">
-        <strong>The Benjamin Reasoning:</strong> Stress-testing bay configurations using calculated demand 
+        <strong>Engineering Analysis:</strong> Stress-testing bay configurations using calculated demand 
         (<strong>{scientific_hpc_traffic:.1f} trucks/day</strong>) to find economic optimum balancing service quality and infrastructure cost.
         Uses Erlang-C queue theory to simulate wait times and service levels.
         </p>
