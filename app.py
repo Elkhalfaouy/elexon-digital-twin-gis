@@ -4054,7 +4054,7 @@ with tab_serv:
         arrowhead=2,
         arrowcolor="#3b82f6",
         ax=50, ay=-40,
-        font=dict(size=11, color="#3b82f6", family="Arial, sans-serif", weight="bold"),
+        font=dict(size=11, color="#3b82f6", family="Arial, sans-serif"),
         bgcolor="rgba(59, 130, 246, 0.1)",
         bordercolor="#3b82f6",
         borderwidth=2,
@@ -4075,7 +4075,7 @@ with tab_serv:
     fig_optimization.update_layout(
         title=dict(
             text="Service Level vs. Bay Count Scaling",
-            font=dict(size=18, family="Arial, sans-serif", weight="bold"),
+            font=dict(size=18, family="Arial, sans-serif"),
             x=0.5,
             xanchor='center'
         ),
