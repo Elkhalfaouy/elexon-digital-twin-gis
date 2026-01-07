@@ -2778,9 +2778,8 @@ with tab_dash:
     # === PROFESSIONAL KPI COMMAND CENTER (4 Pillars) ===
     st.markdown("### Live Command Center")
     
-    # Calculate KPIs
-    site_grid_kva = st.session_state.get("site_grid_kva", transformer_limit_kva)
-    peak_load_utilization = (peak_load_kva / site_grid_kva) * 100
+    # Calculate KPIs - Use transformer_limit_kva directly (already synced with session state)
+    peak_load_utilization = (peak_load_kva / transformer_limit_kva) * 100
     grid_health_status = "CRITICAL" if peak_load_utilization > 90 else "OPTIMAL" if peak_load_utilization < 70 else "NORMAL"
     grid_health_color = "#ef4444" if peak_load_utilization > 90 else "#10b981" if peak_load_utilization < 70 else "#f59e0b"
     
@@ -2807,7 +2806,7 @@ with tab_dash:
             <div style="color: white; font-size: 36px; font-weight: 800; margin: 10px 0;">{peak_load_utilization:.1f}%</div>
             <div style="color: #cbd5e0; font-size: 13px; margin-bottom: 12px;">Peak Load Utilization</div>
             <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-top: 10px;">
-                <div style="color: #718096; font-size: 11px;">Load: {peak_load_kva:,.0f} kVA / {site_grid_kva:,.0f} kVA</div>
+                <div style="color: #718096; font-size: 11px;">Load: {peak_load_kva:,.0f} kVA / {transformer_limit_kva:,.0f} kVA</div>
                 <div style="color: {grid_health_color}; font-size: 12px; font-weight: 700; margin-top: 4px;">{grid_health_status}</div>
             </div>
         </div>
