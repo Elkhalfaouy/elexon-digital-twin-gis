@@ -4059,26 +4059,43 @@ with tab_serv:
     
     def simulate_bay_performance(bay_count, daily_trucks, avg_charge_hours):
         """Simulate wait time and service level for given bay configuration"""
-        arrival_rate = daily_trucks / 24.0  # trucks per hour
+        # More realistic arrival patterns with peak factors
+        peak_factor = 1.5  # Peak hour factor (50% above average)
+        arrival_rate = (daily_trucks / 24.0) * peak_factor  # trucks per hour during peak
         service_rate = 1.0 / avg_charge_hours  # services per hour per bay
         traffic_intensity = arrival_rate / service_rate  # Erlang (A)
         
-        if bay_count <= traffic_intensity:
-            # System overloaded
-            return 65.0, 60.0  # Very high wait time, low service level
+        # System utilization
+        utilization = traffic_intensity / bay_count
         
-        # Probability of waiting
+        if bay_count <= traffic_intensity:
+            # System overloaded - queue grows indefinitely
+            return 70.0, 65.0  # Very high wait time, low service level
+        
+        if utilization > 0.95:
+            # Critical congestion zone
+            return 45.0, 75.0
+        
+        # Probability of waiting (Erlang-C)
         prob_wait = erlang_c(bay_count, traffic_intensity)
         
-        # Average wait time (in hours)
+        # Average wait time (in hours) using Erlang-C formula
         avg_wait_hours = prob_wait / (bay_count * service_rate - arrival_rate)
         avg_wait_minutes = avg_wait_hours * 60
         
-        # Service level: percentage served within 5 minutes
-        if avg_wait_minutes > 5:
-            service_level = max(100 - (avg_wait_minutes - 5) * 2, 60)
+        # Service level calculation based on wait time thresholds
+        if avg_wait_minutes > 30:
+            service_level = 70.0  # Unacceptable
+        elif avg_wait_minutes > 20:
+            service_level = 80.0  # Poor
+        elif avg_wait_minutes > 10:
+            service_level = 88.0  # Below target
+        elif avg_wait_minutes > 5:
+            service_level = 95.0  # Marginal
+        elif avg_wait_minutes > 2:
+            service_level = 98.5  # Good
         else:
-            service_level = 99.5
+            service_level = 99.5  # Excellent
         
         return avg_wait_minutes, service_level
     
