@@ -648,6 +648,16 @@ rev_sales = (energy_hpc * sell_hpc) + (energy_ac * sell_ac)
 rev_thg = energy_total * thg_price
 total_rev = rev_sales + rev_thg
 
+# CAPEX - Dynamic Multi-Asset Formula (Calculate BEFORE OPEX to use in insurance calculation)
+c_hardware = (n_hpc * cost_dispenser) + (n_power_units * cost_cabinet) + (n_ac * cost_ac_unit)
+c_civil = (n_hpc * cost_civil_hpc) + (n_power_units * cost_civil_cab) + cost_cabling + cost_trafo_install
+c_soft_grid = cost_grid_fee + cost_soft
+c_site_systems = cost_software_integration + cost_site_security + cost_mv_switchgear
+c_renewables = (pv_kwp * cost_pv_unit) + (bess_kwh * cost_bess_unit)
+# Updated Formula: Include all assets + contingency buffer
+capex_base = c_hardware + c_civil + c_soft_grid + c_site_systems + c_renewables
+capex_total = capex_base * (1 + contingency_rate / 100)
+
 # Time-of-Use Energy Cost Calculation
 if use_tou:
     # Create hourly price array: Peak 6-22h (64 intervals), Off-peak 22-6h (32 intervals)
@@ -672,15 +682,7 @@ opex_insurance = (capex_total * annual_insurance_rate / 100) / 365
 total_opex = opex_energy + opex_peak + opex_rent_fix + opex_rent_var + opex_maint + opex_payment_fees + opex_insurance
 daily_ebitda = total_rev - total_opex
 daily_margin = (daily_ebitda / total_rev) * 100 if total_rev > 0 else 0
-# CAPEX - Dynamic Multi-Asset Formula
-c_hardware = (n_hpc * cost_dispenser) + (n_power_units * cost_cabinet) + (n_ac * cost_ac_unit)
-c_civil = (n_hpc * cost_civil_hpc) + (n_power_units * cost_civil_cab) + cost_cabling + cost_trafo_install
-c_soft_grid = cost_grid_fee + cost_soft
-c_site_systems = cost_software_integration + cost_site_security + cost_mv_switchgear
-c_renewables = (pv_kwp * cost_pv_unit) + (bess_kwh * cost_bess_unit)
-# Updated Formula: Include all assets + contingency buffer
-capex_base = c_hardware + c_civil + c_soft_grid + c_site_systems + c_renewables
-capex_total = capex_base * (1 + contingency_rate / 100)
+
 payback = capex_total / (daily_ebitda * 365) if daily_ebitda > 0 else 99.9
 
 # 15-Year ROI with Degradation & Inflation
