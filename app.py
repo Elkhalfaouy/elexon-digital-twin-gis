@@ -365,11 +365,23 @@ with st.sidebar:
         cost_trafo_install = st.number_input("Trafo Install (€)", value=55000)
         cost_soft = st.number_input("Soft Costs (€)", value=96000)
        
+        st.caption("Site Infrastructure & Systems")
+        cost_software_integration = st.number_input("Software Integration (€)", value=20000,
+                                                    help="Payment and backend systems integration")
+        cost_site_security = st.number_input("Site Security (€)", value=25000,
+                                            help="Lighting, CCTV, and access control systems")
+        cost_mv_switchgear = st.number_input("MV Switchgear (€)", value=40000,
+                                            help="Mandatory utility cabinets and medium-voltage equipment")
+       
         st.caption("Renewable Energy Assets")
         cost_pv_unit = st.number_input("PV Cost (€/kWp)", value=900, step=50,
                                        help="Typical range: €800-1,200/kWp for commercial solar installations")
         cost_bess_unit = st.number_input("BESS Cost (€/kWh)", value=500, step=50,
                                          help="Typical range: €400-700/kWh for utility-scale battery storage")
+       
+        st.caption("Risk Management")
+        contingency_rate = st.slider("Contingency Reserve (%)", 0, 20, 10, step=1,
+                                    help="Professional risk buffer for cost overruns and unforeseen expenses")
     # --- OPEX & REVENUE ---
     with st.expander("OPEX & Revenue Inputs", expanded=False):
         sell_hpc = st.number_input("HPC Tariff (€/kWh)", value=0.65)
@@ -393,6 +405,12 @@ with st.sidebar:
         peak_price = st.number_input("Peak Load Price (€/kW/yr)", value=166.0)
         rent_fixed = st.number_input("Fixed Rent (€/Bay/yr)", value=4000)
         rent_var = st.number_input("Variable Rent (€/kWh)", value=0.02, step=0.01)
+       
+        st.caption("Operating Costs")
+        payment_fee_pct = st.number_input("Payment Processing Fee (%)", value=3.0, step=0.1,
+                                         help="Transaction fee charged per kWh sold (credit card, backend)")
+        annual_insurance_rate = st.number_input("Annual Insurance Rate (% of CAPEX)", value=0.5, step=0.1,
+                                               help="Property, liability, and equipment insurance as % of total CAPEX")
         maint_cost = st.number_input("Maint. & Ops (€/yr)", value=80000)
     
     # --- MONTE CARLO SIMULATION SETTINGS ---
@@ -625,16 +643,20 @@ opex_peak = (peak_load_kw * peak_price) / 365
 opex_rent_fix = ((n_hpc + n_ac) * rent_fixed) / 365
 opex_rent_var = energy_total * rent_var
 opex_maint = maint_cost / 365
-total_opex = opex_energy + opex_peak + opex_rent_fix + opex_rent_var + opex_maint
+opex_payment_fees = total_rev * (payment_fee_pct / 100)
+opex_insurance = (capex_total * annual_insurance_rate / 100) / 365
+total_opex = opex_energy + opex_peak + opex_rent_fix + opex_rent_var + opex_maint + opex_payment_fees + opex_insurance
 daily_ebitda = total_rev - total_opex
 daily_margin = (daily_ebitda / total_rev) * 100 if total_rev > 0 else 0
 # CAPEX - Dynamic Multi-Asset Formula
 c_hardware = (n_hpc * cost_dispenser) + (n_power_units * cost_cabinet) + (n_ac * cost_ac_unit)
 c_civil = (n_hpc * cost_civil_hpc) + (n_power_units * cost_civil_cab) + cost_cabling + cost_trafo_install
 c_soft_grid = cost_grid_fee + cost_soft
+c_site_systems = cost_software_integration + cost_site_security + cost_mv_switchgear
 c_renewables = (pv_kwp * cost_pv_unit) + (bess_kwh * cost_bess_unit)
-# Updated Formula: Ensure all assets are captured
-capex_total = c_hardware + c_civil + c_soft_grid + c_renewables
+# Updated Formula: Include all assets + contingency buffer
+capex_base = c_hardware + c_civil + c_soft_grid + c_site_systems + c_renewables
+capex_total = capex_base * (1 + contingency_rate / 100)
 payback = capex_total / (daily_ebitda * 365) if daily_ebitda > 0 else 99.9
 
 # 15-Year ROI with Degradation & Inflation
