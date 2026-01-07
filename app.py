@@ -514,17 +514,18 @@ peak_load_kw = res["Final_Grid_kW"].max()
 peak_load_kva = (peak_load_kw * diversity_factor) / power_factor
 is_overload = peak_load_kva > transformer_limit_kva
 
-# Calculate total curtailment due to grid constraint
-total_curtailed_kwh = res["Curtailed_kW"].sum() / 4
-grid_congestion_impact = (total_curtailed_kwh / (demand_hpc_kwh + demand_ac_kwh) * 100) if (demand_hpc_kwh + demand_ac_kwh) > 0 else 0
-
 # Energy (Served Only)
 energy_hpc = res["HPC_Served_kW"].sum() / 4
 energy_ac = res["AC_Served_kW"].sum() / 4
 energy_total = energy_hpc + energy_ac
-# Service Levels - adjusted for grid curtailment
+
+# Service Levels - Calculate demand first
 demand_hpc_kwh = res["HPC_Demand_kW"].sum() / 4
 demand_ac_kwh = res["AC_Demand_kW"].sum() / 4
+
+# Calculate total curtailment due to grid constraint
+total_curtailed_kwh = res["Curtailed_kW"].sum() / 4
+grid_congestion_impact = (total_curtailed_kwh / (demand_hpc_kwh + demand_ac_kwh) * 100) if (demand_hpc_kwh + demand_ac_kwh) > 0 else 0
 
 # Base service level from charger capacity constraints
 sl_hpc_base = (energy_hpc / demand_hpc_kwh)*100 if demand_hpc_kwh > 0 else 100
