@@ -473,6 +473,7 @@ def run_simulation(hpc_power_kw, ac_power_kw):
        
     battery_soc = bess_kwh * 0.5
     final_grid = []
+    curtailed_load = []  # Track load curtailment due to grid constraint
    
     for i in range(96):
         load = df["Gross_Load_kW"].iloc[i]
@@ -490,10 +491,20 @@ def run_simulation(hpc_power_kw, ac_power_kw):
                 possible = min(bess_kw, (bess_kwh - battery_soc) * 4)
                 flow = possible
             battery_soc += flow / 4
-           
-        final_grid.append(max(0, net + flow))
+        
+        # === DYNAMIC LOAD MANAGEMENT (DLM) CAP ===
+        # Hard cap: Final grid load cannot exceed transformer capacity
+        grid_demand = net + flow
+        if grid_demand > limit_kw:
+            curtailed = grid_demand - limit_kw
+            curtailed_load.append(curtailed)
+            final_grid.append(limit_kw)  # Capped at transformer limit
+        else:
+            curtailed_load.append(0)
+            final_grid.append(max(0, grid_demand))
        
     df["Final_Grid_kW"] = final_grid
+    df["Curtailed_kW"] = curtailed_load  # Track what couldn't be served due to grid constraint
     return df, temp_derate
 
 res, temp_derate = run_simulation(hpc_power_kw, ac_power_kw)
@@ -502,15 +513,26 @@ peak_load_kw = res["Final_Grid_kW"].max()
 # Apply Grid Diversity Factor (Universal Module)
 peak_load_kva = (peak_load_kw * diversity_factor) / power_factor
 is_overload = peak_load_kva > transformer_limit_kva
+
+# Calculate total curtailment due to grid constraint
+total_curtailed_kwh = res["Curtailed_kW"].sum() / 4
+grid_congestion_impact = (total_curtailed_kwh / (demand_hpc_kwh + demand_ac_kwh) * 100) if (demand_hpc_kwh + demand_ac_kwh) > 0 else 0
+
 # Energy (Served Only)
 energy_hpc = res["HPC_Served_kW"].sum() / 4
 energy_ac = res["AC_Served_kW"].sum() / 4
 energy_total = energy_hpc + energy_ac
-# Service Levels
+# Service Levels - adjusted for grid curtailment
 demand_hpc_kwh = res["HPC_Demand_kW"].sum() / 4
 demand_ac_kwh = res["AC_Demand_kW"].sum() / 4
-sl_hpc = (energy_hpc / demand_hpc_kwh)*100 if demand_hpc_kwh > 0 else 100
-sl_ac = (energy_ac / demand_ac_kwh)*100 if demand_ac_kwh > 0 else 100
+
+# Base service level from charger capacity constraints
+sl_hpc_base = (energy_hpc / demand_hpc_kwh)*100 if demand_hpc_kwh > 0 else 100
+sl_ac_base = (energy_ac / demand_ac_kwh)*100 if demand_ac_kwh > 0 else 100
+
+# Apply grid congestion penalty (DLM impact reduces service level)
+sl_hpc = max(0, sl_hpc_base - grid_congestion_impact)
+sl_ac = max(0, sl_ac_base - grid_congestion_impact)
 
 # Charging Hours Analysis
 hpc_total_hours = res["HPC_Served_kW"].sum() / (hpc_power_kw * n_hpc) if n_hpc > 0 else 0
@@ -2839,6 +2861,20 @@ with tab_dash:
             <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-top: 10px;">
                 <div style="color: #718096; font-size: 11px;">PV Energy: {energy_pv_consumed:,.0f} kWh/day</div>
                 <div style="color: {sustainability_color}; font-size: 12px; font-weight: 700; margin-top: 4px;">{sustainability_status}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # === DLM CURTAILMENT ALERT (If grid constraint is active) ===
+    if total_curtailed_kwh > 0:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); 
+                    padding: 15px; border-radius: 10px; border-left: 4px solid #dc2626; 
+                    margin: 20px 0;">
+            <div style="color: #991b1b; font-size: 13px; font-weight: 700; margin-bottom: 5px;">DYNAMIC LOAD MANAGEMENT ACTIVE</div>
+            <div style="color: #7f1d1d; font-size: 12px; line-height: 1.5;">
+            Grid constraint reached: {total_curtailed_kwh:,.1f} kWh curtailed ({grid_congestion_impact:.1f}% demand reduction).<br>
+            <strong>Recommendation:</strong> Consider increasing transformer capacity or adding battery storage.
             </div>
         </div>
         """, unsafe_allow_html=True)
