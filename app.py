@@ -148,7 +148,7 @@ if not spatial_compliance:
     st.sidebar.markdown(f"""
     <div style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); 
                 padding: 15px; border-radius: 8px; border-left: 5px solid #dc2626; margin-bottom: 15px;">
-        <div style="color: #991b1b; font-size: 13px; font-weight: 700; margin-bottom: 8px;">⚠️ SITE OVER-UTILIZED</div>
+        <div style="color: #991b1b; font-size: 13px; font-weight: 700; margin-bottom: 8px;">SITE OVER-UTILIZED</div>
         <div style="color: #7f1d1d; font-size: 11px; line-height: 1.5;">
         <strong>Required:</strong> {required_area:,.0f} m²<br>
         <strong>Available:</strong> {land_area_m2:,.0f} m²<br>
@@ -161,7 +161,7 @@ else:
     st.sidebar.markdown(f"""
     <div style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); 
                 padding: 15px; border-radius: 8px; border-left: 5px solid #10b981; margin-bottom: 15px;">
-        <div style="color: #065f46; font-size: 13px; font-weight: 700; margin-bottom: 8px;">✅ SITE COMPLIANT</div>
+        <div style="color: #065f46; font-size: 13px; font-weight: 700; margin-bottom: 8px;">SITE COMPLIANT</div>
         <div style="color: #047857; font-size: 11px; line-height: 1.5;">
         <strong>Required:</strong> {required_area:,.0f} m²<br>
         <strong>Available:</strong> {land_area_m2:,.0f} m²<br>
@@ -2753,7 +2753,7 @@ with tab_dash:
     """, unsafe_allow_html=True)
     
     # === PROFESSIONAL KPI COMMAND CENTER (4 Pillars) ===
-    st.markdown("### 🎯 Live Command Center")
+    st.markdown("### Live Command Center")
     
     # Calculate KPIs
     site_grid_kva = st.session_state.get("site_grid_kva", transformer_limit_kva)
@@ -2780,7 +2780,7 @@ with tab_dash:
         <div style="background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
                     padding: 20px; border-radius: 12px; border-left: 6px solid {grid_health_color};
                     box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-height: 180px;">
-            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">⚡ GRID HEALTH</div>
+            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">GRID HEALTH</div>
             <div style="color: white; font-size: 36px; font-weight: 800; margin: 10px 0;">{peak_load_utilization:.1f}%</div>
             <div style="color: #cbd5e0; font-size: 13px; margin-bottom: 12px;">Peak Load Utilization</div>
             <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-top: 10px;">
@@ -2797,7 +2797,7 @@ with tab_dash:
         <div style="background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
                     padding: 20px; border-radius: 12px; border-left: 6px solid {service_color};
                     box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-height: 180px;">
-            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">🔌 SERVICE VELOCITY</div>
+            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">SERVICE VELOCITY</div>
             <div style="color: white; font-size: 36px; font-weight: 800; margin: 10px 0;">{active_charging_sessions}</div>
             <div style="color: #cbd5e0; font-size: 13px; margin-bottom: 12px;">Active Charging Sessions</div>
             <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-top: 10px;">
@@ -2815,7 +2815,7 @@ with tab_dash:
         <div style="background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
                     padding: 20px; border-radius: 12px; border-left: 6px solid {financial_color};
                     box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-height: 180px;">
-            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">💰 FINANCIAL VELOCITY</div>
+            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">FINANCIAL VELOCITY</div>
             <div style="color: white; font-size: 36px; font-weight: 800; margin: 10px 0;">€{projected_daily_ebitda:,.0f}</div>
             <div style="color: #cbd5e0; font-size: 13px; margin-bottom: 12px;">Projected Daily EBITDA</div>
             <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-top: 10px;">
@@ -2833,7 +2833,7 @@ with tab_dash:
         <div style="background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
                     padding: 20px; border-radius: 12px; border-left: 6px solid {sustainability_color};
                     box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-height: 180px;">
-            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">🌱 SUSTAINABILITY INDEX</div>
+            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">SUSTAINABILITY INDEX</div>
             <div style="color: white; font-size: 36px; font-weight: 800; margin: 10px 0;">{renewable_offset_pct:.1f}%</div>
             <div style="color: #cbd5e0; font-size: 13px; margin-bottom: 12px;">Renewable Offset</div>
             <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-top: 10px;">
@@ -3990,7 +3990,7 @@ with tab_serv:
     
     # === UPGRADE 3: Infrastructure Sizing Stress-Test Chart ===
     st.markdown("---")
-    st.markdown("### 📈 Infrastructure Sizing Optimization")
+    st.markdown("### Infrastructure Sizing Optimization")
     st.markdown(f"""
     <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); 
                 padding: 18px; border-radius: 10px; border-left: 4px solid #0284c7; margin-bottom: 20px;">
@@ -4629,7 +4629,7 @@ with tab_compare:
     st.caption("Compare saved scenarios with interactive charts for thesis presentation.")
     
     # === NEW: Grid-Only vs Full Sustainable Hub Comparison ===
-    st.markdown("### ⚡ Infrastructure Investment Analysis")
+    st.markdown("### Infrastructure Investment Analysis")
     st.markdown("""
     <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); 
                 padding: 18px; border-radius: 10px; border-left: 4px solid #0284c7; margin-bottom: 20px;">
