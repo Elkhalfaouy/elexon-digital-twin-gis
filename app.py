@@ -128,6 +128,50 @@ st.sidebar.caption(f"Formula: {total_daily_traffic:,} × {electrification_rate}%
 # Store for use in calculations
 scientific_hpc_traffic = calculated_hpc_demand
 
+# === UNIVERSAL SITE-AWARENESS: Feasibility Badge ===
+st.sidebar.markdown("---")
+st.sidebar.markdown("### Site Feasibility Status")
+
+# Calculate required area for 8-bay blueprint
+bay_width_m = 4.5
+bay_length_m = 25
+maneuvering_depth_m = 30
+n_bays_baseline = 8  # Standard 8-bay configuration
+required_area = (n_bays_baseline * bay_width_m) * (bay_length_m + maneuvering_depth_m)
+available_area = st.session_state.get('available_area', 3000)
+land_area_m2 = st.session_state.get('site_area_m2', available_area)
+
+spatial_compliance = required_area <= land_area_m2
+utilization_pct = (required_area / land_area_m2) * 100 if land_area_m2 > 0 else 100
+
+if not spatial_compliance:
+    st.sidebar.markdown(f"""
+    <div style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); 
+                padding: 15px; border-radius: 8px; border-left: 5px solid #dc2626; margin-bottom: 15px;">
+        <div style="color: #991b1b; font-size: 13px; font-weight: 700; margin-bottom: 8px;">⚠️ SITE OVER-UTILIZED</div>
+        <div style="color: #7f1d1d; font-size: 11px; line-height: 1.5;">
+        <strong>Required:</strong> {required_area:,.0f} m²<br>
+        <strong>Available:</strong> {land_area_m2:,.0f} m²<br>
+        <strong>Shortfall:</strong> {required_area - land_area_m2:,.0f} m² ({utilization_pct:.0f}%)
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+else:
+    margin = land_area_m2 - required_area
+    st.sidebar.markdown(f"""
+    <div style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); 
+                padding: 15px; border-radius: 8px; border-left: 5px solid #10b981; margin-bottom: 15px;">
+        <div style="color: #065f46; font-size: 13px; font-weight: 700; margin-bottom: 8px;">✅ SITE COMPLIANT</div>
+        <div style="color: #047857; font-size: 11px; line-height: 1.5;">
+        <strong>Required:</strong> {required_area:,.0f} m²<br>
+        <strong>Available:</strong> {land_area_m2:,.0f} m²<br>
+        <strong>Margin:</strong> {margin:,.0f} m² ({utilization_pct:.0f}% utilized)
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.sidebar.markdown("---")
+
 site_address = st.sidebar.text_input("Address:", value="Autobahn A9, 04435 Schkeuditz",
                                      help="Physical address or location description")
 col_lat, col_lon = st.sidebar.columns(2)
@@ -550,11 +594,12 @@ opex_maint = maint_cost / 365
 total_opex = opex_energy + opex_peak + opex_rent_fix + opex_rent_var + opex_maint
 daily_ebitda = total_rev - total_opex
 daily_margin = (daily_ebitda / total_rev) * 100 if total_rev > 0 else 0
-# CAPEX
+# CAPEX - Dynamic Multi-Asset Formula
 c_hardware = (n_hpc * cost_dispenser) + (n_power_units * cost_cabinet) + (n_ac * cost_ac_unit)
 c_civil = (n_hpc * cost_civil_hpc) + (n_power_units * cost_civil_cab) + cost_cabling + cost_trafo_install
 c_soft_grid = cost_grid_fee + cost_soft
 c_renewables = (pv_kwp * cost_pv_unit) + (bess_kwh * cost_bess_unit)
+# Updated Formula: Ensure all assets are captured
 capex_total = c_hardware + c_civil + c_soft_grid + c_renewables
 payback = capex_total / (daily_ebitda * 365) if daily_ebitda > 0 else 99.9
 
@@ -2686,98 +2731,107 @@ with tab_gis:
 
 
 with tab_dash:
-    # Professional header with gradient background
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                padding: 25px; border-radius: 12px; margin-bottom: 25px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-        <h2 style="color: white; margin: 0 0 8px 0; font-size: 28px;">Executive Dashboard</h2>
-        <p style="color: #e0e7ff; margin: 0; font-size: 15px;">Real-time digital twin analytics for strategic decision-making</p>
+    # === UNIVERSAL SITE-AWARENESS: Dynamic Title ===
+    active_site_name = st.session_state.get('active_site_name', 'Schkeuditz Logistics Node')
+    
+    # Professional header with gradient background and dynamic title
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); 
+                padding: 30px; border-radius: 12px; margin-bottom: 25px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+        <h2 style="color: white; margin: 0 0 8px 0; font-size: 32px; font-weight: 700;">APTracks Digital Shadow: {active_site_name}</h2>
+        <p style="color: #cbd5e0; margin: 0; font-size: 16px;">Live Command Center • Real-time Operations Intelligence</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Info box explaining dashboard purpose
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); 
-                padding: 18px; border-radius: 10px; border-left: 4px solid #0284c7; margin-bottom: 20px;">
-        <p style="color: #0c4a6e; margin: 0; font-size: 14px; line-height: 1.6;">
-        <strong>💡 Dashboard Overview</strong><br>
-        Live performance monitoring of grid load, service levels, and financial metrics across all charger types.<br>
-        <strong>Key Metrics:</strong> Peak Load | Daily Profit | Service Quality | Energy Delivery | Asset Utilization
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    # === PROFESSIONAL KPI COMMAND CENTER (4 Pillars) ===
+    st.markdown("### 🎯 Live Command Center")
     
-    # Professional KPI Cards with Visual Styling
-    st.markdown("### Key Performance Indicators")
+    # Calculate KPIs
+    site_grid_kva = st.session_state.get("site_grid_kva", transformer_limit_kva)
+    peak_load_utilization = (peak_load_kva / site_grid_kva) * 100
+    grid_health_status = "CRITICAL" if peak_load_utilization > 90 else "OPTIMAL" if peak_load_utilization < 70 else "NORMAL"
+    grid_health_color = "#ef4444" if peak_load_utilization > 90 else "#10b981" if peak_load_utilization < 70 else "#f59e0b"
     
-    kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+    # KPI 2: Service Velocity
+    active_charging_sessions = int(total_charging_hours / 1.5) if total_charging_hours > 0 else 0  # Assuming avg 1.5h per session
+    station_utilization_rate = (total_charging_hours / ((n_hpc + n_ac) * 24)) * 100
+    
+    # KPI 3: Financial Velocity (using €0.75/kWh tariff)
+    demand_proxy = demand_hpc_kwh + demand_ac_kwh
+    projected_daily_ebitda = (demand_proxy * 0.75) - total_opex
+    
+    # KPI 4: Sustainability Index
+    renewable_offset_pct = (energy_pv_consumed / demand_proxy * 100) if demand_proxy > 0 else 0
+    
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
     
     with kpi1:
-        grid_status = "PASS" if not is_overload else "WARNING"
-        grid_color = "#10b981" if not is_overload else "#f59e0b"
+        # KPI 1: Grid Health (GREEN border)
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-                    padding: 15px; border-radius: 10px; border-left: 4px solid {grid_color};
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 5px;">PEAK LOAD</div>
-            <div style="color: #1f2937; font-size: 24px; font-weight: 700;">{peak_load_kva:,.0f}</div>
-            <div style="color: #64748b; font-size: 11px;">kVA • {(peak_load_kva/transformer_limit_kva*100):.1f}% capacity</div>
-            <div style="color: {grid_color}; font-size: 11px; font-weight: 600; margin-top: 5px;">{grid_status}</div>
+        <div style="background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+                    padding: 20px; border-radius: 12px; border-left: 6px solid {grid_health_color};
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-height: 180px;">
+            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">⚡ GRID HEALTH</div>
+            <div style="color: white; font-size: 36px; font-weight: 800; margin: 10px 0;">{peak_load_utilization:.1f}%</div>
+            <div style="color: #cbd5e0; font-size: 13px; margin-bottom: 12px;">Peak Load Utilization</div>
+            <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-top: 10px;">
+                <div style="color: #718096; font-size: 11px;">Load: {peak_load_kva:,.0f} kVA / {site_grid_kva:,.0f} kVA</div>
+                <div style="color: {grid_health_color}; font-size: 12px; font-weight: 700; margin-top: 4px;">{grid_health_status}</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     
     with kpi2:
-        profit_color = "#10b981" if daily_ebitda > 0 else "#ef4444"
+        # KPI 2: Service Velocity (BLUE border)
+        service_color = "#3b82f6"
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-                    padding: 15px; border-radius: 10px; border-left: 4px solid {profit_color};
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 5px;">DAILY PROFIT</div>
-            <div style="color: #1f2937; font-size: 24px; font-weight: 700;">€{daily_ebitda:,.0f}</div>
-            <div style="color: #64748b; font-size: 11px;">EBITDA • {daily_margin:.1f}% margin</div>
-            <div style="color: {profit_color}; font-size: 11px; font-weight: 600; margin-top: 5px;">{"PROFITABLE" if daily_ebitda > 0 else "LOSS"}</div>
+        <div style="background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+                    padding: 20px; border-radius: 12px; border-left: 6px solid {service_color};
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-height: 180px;">
+            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">🔌 SERVICE VELOCITY</div>
+            <div style="color: white; font-size: 36px; font-weight: 800; margin: 10px 0;">{active_charging_sessions}</div>
+            <div style="color: #cbd5e0; font-size: 13px; margin-bottom: 12px;">Active Charging Sessions</div>
+            <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-top: 10px;">
+                <div style="color: #718096; font-size: 11px;">Station Utilization Rate (SUR)</div>
+                <div style="color: {service_color}; font-size: 16px; font-weight: 700; margin-top: 4px;">{station_utilization_rate:.1f}%</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     
     with kpi3:
-        avg_service = (sl_hpc + sl_ac)/2
-        service_color = "#10b981" if avg_service >= 99 else "#f59e0b"
+        # KPI 3: Financial Velocity (GOLD border)
+        financial_color = "#f59e0b"
+        financial_status = "PROFITABLE" if projected_daily_ebitda > 0 else "LOSS"
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-                    padding: 15px; border-radius: 10px; border-left: 4px solid {service_color};
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 5px;">SERVICE LEVEL</div>
-            <div style="color: #1f2937; font-size: 24px; font-weight: 700;">{avg_service:.1f}%</div>
-            <div style="color: #64748b; font-size: 11px;">Combined • Target: 99%</div>
-            <div style="color: {service_color}; font-size: 11px; font-weight: 600; margin-top: 5px;">{"EXCELLENT" if avg_service >= 99 else "GOOD"}</div>
+        <div style="background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+                    padding: 20px; border-radius: 12px; border-left: 6px solid {financial_color};
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-height: 180px;">
+            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">💰 FINANCIAL VELOCITY</div>
+            <div style="color: white; font-size: 36px; font-weight: 800; margin: 10px 0;">€{projected_daily_ebitda:,.0f}</div>
+            <div style="color: #cbd5e0; font-size: 13px; margin-bottom: 12px;">Projected Daily EBITDA</div>
+            <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-top: 10px;">
+                <div style="color: #718096; font-size: 11px;">Tariff: €0.75/kWh • Demand: {demand_proxy:,.0f} kWh</div>
+                <div style="color: {financial_color}; font-size: 12px; font-weight: 700; margin-top: 4px;">{financial_status}</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     
     with kpi4:
-        served_pct = (energy_total/demand_hpc_kwh if demand_hpc_kwh > 0 else 0)*100
+        # KPI 4: Sustainability Index (PURPLE border)
+        sustainability_color = "#a855f7"
+        sustainability_status = "EXCELLENT" if renewable_offset_pct > 30 else "GOOD" if renewable_offset_pct > 10 else "LOW"
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-                    padding: 15px; border-radius: 10px; border-left: 4px solid #a855f7;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 5px;">ENERGY SERVED</div>
-            <div style="color: #1f2937; font-size: 24px; font-weight: 700;">{energy_total:,.0f}</div>
-            <div style="color: #64748b; font-size: 11px;">kWh • {served_pct:.0f}% of demand</div>
-            <div style="color: #a855f7; font-size: 11px; font-weight: 600; margin-top: 5px;">DAILY</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with kpi5:
-        utilization_pct = (total_charging_hours / ((n_hpc + n_ac) * 24)) * 100
-        util_color = "#10b981" if utilization_pct >= 60 else "#64748b"
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
-                    padding: 15px; border-radius: 10px; border-left: 4px solid {util_color};
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 5px;">UTILIZATION</div>
-            <div style="color: #1f2937; font-size: 24px; font-weight: 700;">{utilization_pct:.1f}%</div>
-            <div style="color: #64748b; font-size: 11px;">{total_charging_hours:.0f} hrs/day</div>
-            <div style="color: {util_color}; font-size: 11px; font-weight: 600; margin-top: 5px;">{"OPTIMAL" if utilization_pct >= 60 else "MODERATE"}</div>
+        <div style="background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+                    padding: 20px; border-radius: 12px; border-left: 6px solid {sustainability_color};
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-height: 180px;">
+            <div style="color: #a0aec0; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">🌱 SUSTAINABILITY INDEX</div>
+            <div style="color: white; font-size: 36px; font-weight: 800; margin: 10px 0;">{renewable_offset_pct:.1f}%</div>
+            <div style="color: #cbd5e0; font-size: 13px; margin-bottom: 12px;">Renewable Offset</div>
+            <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-top: 10px;">
+                <div style="color: #718096; font-size: 11px;">PV Energy: {energy_pv_consumed:,.0f} kWh/day</div>
+                <div style="color: {sustainability_color}; font-size: 12px; font-weight: 700; margin-top: 4px;">{sustainability_status}</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -4565,6 +4619,154 @@ with tab_capex:
 with tab_compare:
     st.subheader("Scenario Comparison Dashboard")
     st.caption("Compare saved scenarios with interactive charts for thesis presentation.")
+    
+    # === NEW: Grid-Only vs Full Sustainable Hub Comparison ===
+    st.markdown("### ⚡ Infrastructure Investment Analysis")
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); 
+                padding: 18px; border-radius: 10px; border-left: 4px solid #0284c7; margin-bottom: 20px;">
+        <p style="color: #0c4a6e; margin: 0; font-size: 14px; line-height: 1.6;">
+        <strong>Strategic Analysis:</strong> Comparing Grid-Only (Baseline) vs Full Sustainable Hub (PV+BESS+Grid) 
+        to demonstrate long-term ROI and renewable investment payback over 15 years.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Scenario A: Grid-Only (Baseline)
+    capex_grid_only = c_hardware + c_civil + c_soft_grid
+    capex_renewables_only = c_renewables  # PV + BESS investment
+    capex_full_hub = capex_total  # Total with renewables
+    
+    # Calculate 15-year ROI for both scenarios
+    # Assumption: Grid-only uses current OPEX, Full Hub reduces OPEX via PV self-consumption
+    annual_profit_grid_only = daily_ebitda * 365
+    annual_profit_full_hub = (daily_ebitda * 365) if c_renewables > 0 else annual_profit_grid_only
+    
+    roi_15y_grid_only = ((annual_profit_grid_only * 15 - capex_grid_only) / capex_grid_only * 100) if capex_grid_only > 0 else 0
+    roi_15y_full_hub = ((annual_profit_full_hub * 15 - capex_full_hub) / capex_full_hub * 100) if capex_full_hub > 0 else 0
+    
+    # Create side-by-side bar chart
+    fig_investment = go.Figure()
+    
+    scenarios = ['Scenario A<br>(Grid-Only)', 'Scenario B<br>(Full Sustainable Hub)']
+    capex_values = [capex_grid_only, capex_full_hub]
+    roi_values = [roi_15y_grid_only, roi_15y_full_hub]
+    
+    # Add CAPEX bars
+    fig_investment.add_trace(go.Bar(
+        x=scenarios,
+        y=capex_values,
+        name='Total CAPEX',
+        marker=dict(
+            color=['#3b82f6', '#10b981'],
+            line=dict(color='white', width=2)
+        ),
+        text=[f'€{val:,.0f}' for val in capex_values],
+        textposition='outside',
+        hovertemplate='<b>%{x}</b><br>CAPEX: €%{y:,.0f}<extra></extra>'
+    ))
+    
+    # Add annotations for 15-year ROI above each bar
+    for i, (scenario, roi) in enumerate(zip(scenarios, roi_values)):
+        fig_investment.add_annotation(
+            x=i,
+            y=capex_values[i] * 1.15,
+            text=f"<b>15-Year ROI:</b><br>{roi:.1f}%",
+            showarrow=True,
+            arrowhead=2,
+            arrowcolor="#374151",
+            ax=0,
+            ay=-50,
+            font=dict(size=13, color="#1f2937", family="Arial, sans-serif"),
+            bgcolor="rgba(255, 255, 255, 0.9)",
+            bordercolor="#374151",
+            borderwidth=2,
+            borderpad=8
+        )
+    
+    # Highlight the renewable investment delta
+    renewable_investment_annotation = f"Renewable Investment: €{capex_renewables_only:,.0f}"
+    fig_investment.add_annotation(
+        x=1,
+        y=capex_grid_only,
+        text=f"<b>+€{capex_renewables_only:,.0f}</b><br>PV+BESS Investment<br><i>Pays for itself via OPEX savings</i>",
+        showarrow=True,
+        arrowhead=2,
+        arrowcolor="#10b981",
+        ax=80,
+        ay=0,
+        font=dict(size=11, color="#065f46", family="Arial, sans-serif"),
+        bgcolor="rgba(220, 252, 231, 0.95)",
+        bordercolor="#10b981",
+        borderwidth=2,
+        borderpad=8
+    )
+    
+    fig_investment.update_layout(
+        title=dict(
+            text="<b>Investment Comparison: Grid-Only vs Full Sustainable Hub</b>",
+            font=dict(size=20, family="Arial, sans-serif"),
+            x=0.5,
+            xanchor='center'
+        ),
+        xaxis=dict(
+            title="Configuration Scenario",
+            titlefont=dict(size=14),
+            tickfont=dict(size=12)
+        ),
+        yaxis=dict(
+            title="Total CAPEX Investment (€)",
+            titlefont=dict(size=14),
+            tickfont=dict(size=12),
+            gridcolor='#e5e7eb'
+        ),
+        plot_bgcolor='#f9fafb',
+        paper_bgcolor='white',
+        height=500,
+        showlegend=False,
+        margin=dict(l=60, r=60, t=100, b=80)
+    )
+    
+    st.plotly_chart(fig_investment, use_container_width=True)
+    
+    # Add financial summary cards
+    col_a, col_b, col_delta = st.columns(3)
+    
+    with col_a:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                    padding: 20px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+            <div style="color: #1e40af; font-size: 12px; font-weight: 700; margin-bottom: 8px;">SCENARIO A: GRID-ONLY</div>
+            <div style="color: #1e3a8a; font-size: 28px; font-weight: 800;">€{capex_grid_only:,.0f}</div>
+            <div style="color: #3b82f6; font-size: 11px; margin-top: 8px;">15-Year ROI: {roi_15y_grid_only:.1f}%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_b:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+                    padding: 20px; border-radius: 10px; border-left: 4px solid #10b981;">
+            <div style="color: #065f46; font-size: 12px; font-weight: 700; margin-bottom: 8px;">SCENARIO B: FULL HUB</div>
+            <div style="color: #064e3b; font-size: 28px; font-weight: 800;">€{capex_full_hub:,.0f}</div>
+            <div style="color: #10b981; font-size: 11px; margin-top: 8px;">15-Year ROI: {roi_15y_full_hub:.1f}%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_delta:
+        roi_improvement = roi_15y_full_hub - roi_15y_grid_only
+        improvement_color = "#10b981" if roi_improvement > 0 else "#ef4444"
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                    padding: 20px; border-radius: 10px; border-left: 4px solid #f59e0b;">
+            <div style="color: #78350f; font-size: 12px; font-weight: 700; margin-bottom: 8px;">RENEWABLE DELTA</div>
+            <div style="color: #92400e; font-size: 28px; font-weight: 800;">€{capex_renewables_only:,.0f}</div>
+            <div style="color: {improvement_color}; font-size: 11px; margin-top: 8px;">ROI Improvement: {roi_improvement:+.1f}%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Original scenario comparison section
     st.info("🎨 **Color Coding Guide:** Green = Better Performance | Red = Worse Performance | Gradient shows relative ranking across scenarios")
     
     if len(st.session_state['scenarios']) > 0:
