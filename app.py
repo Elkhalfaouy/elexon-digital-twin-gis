@@ -278,11 +278,19 @@ with st.sidebar:
     # --- TECHNICAL ---
     with st.expander("Technical Specifications", expanded=False):
         st.caption("Grid Constraints")
+        # Initialize default if not set
+        if "site_grid_kva" not in st.session_state:
+            st.session_state["site_grid_kva"] = 4000
+        
         transformer_limit_kva = st.number_input(
             "Transformer Limit (kVA)",
             value=st.session_state.get("site_grid_kva", 4000),
-            step=100
+            step=100,
+            key="transformer_limit_input"
         )
+        # Sync back to session state when changed
+        st.session_state["site_grid_kva"] = transformer_limit_kva
+        
         power_factor = st.slider("Power Factor (PF)", 0.85, 1.00, 0.95, step=0.01)
         
         # Grid Diversity Module - Universal Decision Support
