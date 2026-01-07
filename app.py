@@ -286,12 +286,14 @@ with st.sidebar:
             "Transformer Limit (kVA)",
             value=st.session_state.get("site_grid_kva", 4000),
             step=100,
-            key="transformer_limit_input"
+            key="transformer_limit_input",
+            help="Maximum grid capacity available at site. Typical highway sites: 2,500-5,000 kVA. Determines peak charging power."
         )
         # Sync back to session state when changed
         st.session_state["site_grid_kva"] = transformer_limit_kva
         
-        power_factor = st.slider("Power Factor (PF)", 0.85, 1.00, 0.95, step=0.01)
+        power_factor = st.slider("Power Factor (PF)", 0.85, 1.00, 0.95, step=0.01,
+                                help="Ratio of real to apparent power. Modern chargers: 0.95-0.99. Lower PF = higher losses and grid load.")
         
         # Grid Diversity Module - Universal Decision Support
         diversity_factor = st.slider(
@@ -305,11 +307,16 @@ with st.sidebar:
                                 help="Chargers derate at high temps: 35°C = -10%, 40°C = -20%")
        
         st.caption("Charger Configuration")
-        n_hpc = st.number_input("HPC Satellites (Dispensers)", value=8)
-        n_power_units = st.number_input("HPC Power Units (Cabinets)", value=4)
-        n_ac = st.number_input("AC Bays (43kW)", value=4)
-        hpc_power_kw = st.slider("HPC Charging Power (kW)", 100, 1000, 400, step=50)
-        ac_power_kw = st.slider("AC Charging Power (kW)", 11, 150, 43, step=11)
+        n_hpc = st.number_input("HPC Satellites (Dispensers)", value=8,
+                               help="Number of physical charging points for trucks. Each dispenser can serve 1 vehicle at a time.")
+        n_power_units = st.number_input("HPC Power Units (Cabinets)", value=4,
+                                       help="Power cabinets that supply energy to dispensers. Typically 1 cabinet per 2-3 satellites (dynamic power sharing).")
+        n_ac = st.number_input("AC Bays (43kW)", value=4,
+                              help="Slow charging bays for overnight parking or light vehicles. Lower cost per bay.")
+        hpc_power_kw = st.slider("HPC Charging Power (kW)", 100, 1000, 400, step=50,
+                                help="Peak power per HPC satellite. Standard: 350-400kW for trucks, 150-350kW for buses.")
+        ac_power_kw = st.slider("AC Charging Power (kW)", 11, 150, 43, step=11,
+                               help="Power per AC bay. Common: 22kW (cars), 43kW (vans/trucks), 150kW (depot charging).")
        
         # === MACRO-TO-MICRO TRAFFIC MODULE (Universal Decision Support) ===
         st.caption("Utilization (Traffic) - Dynamic Calculator")
@@ -321,7 +328,8 @@ with st.sidebar:
         
         hpc_traffic = st.slider("HPC Traffic (Trucks/Day)", 10, 200, default_hpc,
                                help=f"Auto-calculated from BASt corridor traffic + capture rates. Override for sensitivity analysis.")
-        ac_traffic = st.slider("AC Traffic (Trucks/Day)", 0, 50, default_ac)
+        ac_traffic = st.slider("AC Traffic (Trucks/Day)", 0, 50, default_ac,
+                              help="Daily demand for slow charging (overnight parkers, light delivery vehicles).")
         
         st.caption("🚚 Queue Behavior")
         avg_charge_time = st.slider("Avg Charge Time (hours)", 0.5, 3.0, 1.5, step=0.25,
@@ -353,17 +361,26 @@ with st.sidebar:
                                         help="Typical: 2.5%/year for Li-ion (280 cycles/year assumed)")
     # --- DETAILED CAPEX INPUTS ---
     with st.expander("CAPEX Inputs (Detailed)", expanded=True):
-        cost_dispenser = st.number_input("Cost/Satellite (€)", value=17000)
-        cost_cabinet = st.number_input("Cost/Power Unit (€)", value=125000)
-        cost_ac_unit = st.number_input("Cost/AC Charger (€)", value=15000)
+        cost_dispenser = st.number_input("Cost/Satellite (€)", value=17000,
+                                        help="Per HPC dispenser unit (includes cables, mounting, installation). Typical: €15k-25k.")
+        cost_cabinet = st.number_input("Cost/Power Unit (€)", value=125000,
+                                      help="Per power cabinet (rectifier, transformer, cooling). Typical: €100k-150k for 400kW units.")
+        cost_ac_unit = st.number_input("Cost/AC Charger (€)", value=15000,
+                                      help="Per AC charging bay (hardware + installation). Typical: €10k-20k depending on power rating.")
        
-        cost_civil_hpc = st.number_input("Civil/HPC Point (€)", value=10000)
-        cost_civil_cab = st.number_input("Civil/Cabinet (€)", value=30000)
-        cost_cabling = st.number_input("Total Cabling (€)", value=40000)
+        cost_civil_hpc = st.number_input("Civil/HPC Point (€)", value=10000,
+                                        help="Foundation, trenching, and civil works per HPC dispenser. Includes concrete pad and cable ducts.")
+        cost_civil_cab = st.number_input("Civil/Cabinet (€)", value=30000,
+                                        help="Heavy-duty foundation for power cabinets (weighing 2-5 tons). Includes drainage and access.")
+        cost_cabling = st.number_input("Total Cabling (€)", value=40000,
+                                      help="Site-wide power distribution cables (MV + LV). Depends on site layout complexity.")
        
-        cost_grid_fee = st.number_input("Grid Connection Fee (€)", value=300000)
-        cost_trafo_install = st.number_input("Trafo Install (€)", value=55000)
-        cost_soft = st.number_input("Soft Costs (€)", value=96000)
+        cost_grid_fee = st.number_input("Grid Connection Fee (€)", value=300000,
+                                       help="One-time utility fee for new/upgraded grid connection. Highly variable by region: €150k-€500k.")
+        cost_trafo_install = st.number_input("Trafo Install (€)", value=55000,
+                                            help="Purchase and installation of on-site transformer. Typical: €40k-€80k for 2-5 MVA units.")
+        cost_soft = st.number_input("Soft Costs (€)", value=96000,
+                                   help="Engineering, permits, project management, legal fees. Typically 10-15% of hardware CAPEX.")
        
         st.caption("Site Infrastructure & Systems")
         cost_software_integration = st.number_input("Software Integration (€)", value=20000,
@@ -384,9 +401,12 @@ with st.sidebar:
                                     help="Professional risk buffer for cost overruns and unforeseen expenses")
     # --- OPEX & REVENUE ---
     with st.expander("OPEX & Revenue Inputs", expanded=False):
-        sell_hpc = st.number_input("HPC Tariff (€/kWh)", value=0.65)
-        sell_ac = st.number_input("AC Tariff (€/kWh)", value=0.45)
-        thg_price = st.slider("THG Revenue (€/kWh)", 0.0, 0.25, 0.0, step=0.01)
+        sell_hpc = st.number_input("HPC Tariff (€/kWh)", value=0.65,
+                                  help="Customer price for fast charging. Typical EU range: €0.55-€0.85/kWh. Premium locations charge higher.")
+        sell_ac = st.number_input("AC Tariff (€/kWh)", value=0.45,
+                                 help="Customer price for slow charging. Lower than HPC due to longer dwell time. Typical: €0.35-€0.55/kWh.")
+        thg_price = st.slider("THG Revenue (€/kWh)", 0.0, 0.25, 0.0, step=0.01,
+                            help="German GHG quota bonus (Treibhausgasquote). Regulatory incentive: ~€0.05-€0.15/kWh depending on diesel displacement.")
         
         st.caption("Time-of-Use Energy Pricing")
         use_tou = st.checkbox("Enable Time-of-Use Tariffs", value=True, help="Peak hours: 6-22h | Off-peak: 22-6h")
@@ -402,16 +422,20 @@ with st.sidebar:
             elec_price_peak = elec_price
             elec_price_offpeak = elec_price
         
-        peak_price = st.number_input("Peak Load Price (€/kW/yr)", value=166.0)
-        rent_fixed = st.number_input("Fixed Rent (€/Bay/yr)", value=4000)
-        rent_var = st.number_input("Variable Rent (€/kWh)", value=0.02, step=0.01)
+        peak_price = st.number_input("Peak Load Price (€/kW/yr)", value=166.0,
+                                     help="Annual charge for contracted peak grid capacity. German industrial rate: ~€100-€200/kW/year.")
+        rent_fixed = st.number_input("Fixed Rent (€/Bay/yr)", value=4000,
+                                    help="Annual land lease cost per charging bay. Highway service areas: €3k-€8k/bay depending on location.")
+        rent_var = st.number_input("Variable Rent (€/kWh)", value=0.02, step=0.01,
+                                  help="Revenue share to landowner per kWh sold. Common: 1-3% for concession agreements.")
        
         st.caption("Operating Costs")
         payment_fee_pct = st.number_input("Payment Processing Fee (%)", value=3.0, step=0.1,
                                          help="Transaction fee charged per kWh sold (credit card, backend)")
         annual_insurance_rate = st.number_input("Annual Insurance Rate (% of CAPEX)", value=0.5, step=0.1,
                                                help="Property, liability, and equipment insurance as % of total CAPEX")
-        maint_cost = st.number_input("Maint. & Ops (€/yr)", value=80000)
+        maint_cost = st.number_input("Maint. & Ops (€/yr)", value=80000,
+                                    help="Annual maintenance, repairs, cleaning, and operations staff. Rule of thumb: 3-5% of hardware CAPEX per year.")
     
     # --- MONTE CARLO SIMULATION SETTINGS ---
     with st.expander("🎲 Monte Carlo Risk Analysis", expanded=False):
