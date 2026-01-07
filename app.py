@@ -4711,12 +4711,12 @@ with tab_compare:
         ),
         xaxis=dict(
             title="Configuration Scenario",
-            titlefont=dict(size=14),
+            title_font=dict(size=14),
             tickfont=dict(size=12)
         ),
         yaxis=dict(
             title="Total CAPEX Investment (€)",
-            titlefont=dict(size=14),
+            title_font=dict(size=14),
             tickfont=dict(size=12),
             gridcolor='#e5e7eb'
         ),
