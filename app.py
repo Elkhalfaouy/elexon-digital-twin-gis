@@ -365,8 +365,11 @@ with st.sidebar:
         cost_trafo_install = st.number_input("Trafo Install (€)", value=55000)
         cost_soft = st.number_input("Soft Costs (€)", value=96000)
        
-        cost_pv_unit = 900
-        cost_bess_unit = 500
+        st.caption("Renewable Energy Assets")
+        cost_pv_unit = st.number_input("PV Cost (€/kWp)", value=900, step=50,
+                                       help="Typical range: €800-1,200/kWp for commercial solar installations")
+        cost_bess_unit = st.number_input("BESS Cost (€/kWh)", value=500, step=50,
+                                         help="Typical range: €400-700/kWh for utility-scale battery storage")
     # --- OPEX & REVENUE ---
     with st.expander("OPEX & Revenue Inputs", expanded=False):
         sell_hpc = st.number_input("HPC Tariff (€/kWh)", value=0.65)
