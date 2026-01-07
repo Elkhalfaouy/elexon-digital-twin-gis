@@ -352,7 +352,7 @@ with st.sidebar:
             bess_degradation = st.slider("Capacity Fade (%/year)", 1.0, 3.5, 2.5, step=0.5,
                                         help="Typical: 2.5%/year for Li-ion (280 cycles/year assumed)")
     # --- DETAILED CAPEX INPUTS ---
-    with st.expander("CAPEX Inputs (Detailed)", expanded=False):
+    with st.expander("CAPEX Inputs (Detailed)", expanded=True):
         cost_dispenser = st.number_input("Cost/Satellite (€)", value=17000)
         cost_cabinet = st.number_input("Cost/Power Unit (€)", value=125000)
         cost_ac_unit = st.number_input("Cost/AC Charger (€)", value=15000)
