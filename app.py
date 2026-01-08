@@ -2955,33 +2955,36 @@ with tab_dash:
             hovertemplate="Limit: %{y:.0f} kVA<extra></extra>"
         ))
         
-        # Add grid load trace with gradient fill
+        # Add HPC demand FIRST (most important foreground trace)
+        fig_dash.add_trace(go.Scatter(
+            x=res.index,
+            y=res["HPC_Demand_kW"],
+            name="🚚 HPC Demand",
+            line=dict(color='#F59E0B', width=3.5, dash='dash'),
+            mode='lines',
+            hovertemplate="<b>HPC Demand:</b> %{y:.1f} kW<extra></extra>"
+        ))
+        
+        # Add HPC served (solid line showing what was actually delivered)
+        fig_dash.add_trace(go.Scatter(
+            x=res.index,
+            y=res["HPC_Served_kW"],
+            name="⚡ HPC Served",
+            line=dict(color='#10B981', width=3),
+            mode='lines',
+            hovertemplate="<b>HPC Served:</b> %{y:.1f} kW<extra></extra>"
+        ))
+        
+        # Add grid load trace with gradient fill (background element)
         fig_dash.add_trace(go.Scatter(
             x=res.index,
             y=res["Final_Grid_kW"]/power_factor,
             name="📊 Grid Load",
-            line=dict(color='#667eea', width=3.5),
+            line=dict(color='#667eea', width=2.5),
             fill='tozeroy',
-            fillcolor='rgba(102, 126, 234, 0.15)',
+            fillcolor='rgba(102, 126, 234, 0.12)',
+            mode='lines',
             hovertemplate="<b>Grid Load:</b> %{y:.1f} kVA<extra></extra>"
-        ))
-        
-        # Add HPC demand (dashed background)
-        fig_dash.add_trace(go.Scatter(
-            x=res.index,
-            y=res["HPC_Demand_kW"],
-            name="📈 HPC Demand",
-            line=dict(color='#F59E0B', width=2.5, dash='dot'),
-            hovertemplate="<b>Demand:</b> %{y:.1f} kW<extra></extra>"
-        ))
-        
-        # Add HPC served (solid foreground)
-        fig_dash.add_trace(go.Scatter(
-            x=res.index,
-            y=res["HPC_Served_kW"],
-            name="✅ HPC Served",
-            line=dict(color='#10B981', width=3),
-            hovertemplate="<b>Served:</b> %{y:.1f} kW<extra></extra>"
         ))
         
         fig_dash.update_layout(
